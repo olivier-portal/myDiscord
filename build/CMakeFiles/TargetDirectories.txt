@@ -1,0 +1,3 @@
+C:/Users/porta/OneDrive/Documents/La plateforme/C/myDiscord/build/CMakeFiles/myDiscord.dir
+C:/Users/porta/OneDrive/Documents/La plateforme/C/myDiscord/build/CMakeFiles/edit_cache.dir
+C:/Users/porta/OneDrive/Documents/La plateforme/C/myDiscord/build/CMakeFiles/rebuild_cache.dir
