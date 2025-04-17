@@ -23,7 +23,7 @@
         "defines": [
           "LIBDEFLATE_DLL"
         ],
-        "compilerPath": "C:/msys64/ucrt64/bin/cc.exe",
+        "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
         "cStandard": "c11",
         "intelliSenseMode": "windows-gcc-x64"
       }
