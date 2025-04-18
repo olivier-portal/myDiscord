@@ -1,4 +1,4 @@
-// Pour compiler ce code : gcc server.c -o server -llws2_32
+// Pour compiler ce code : gcc server.c -o server -lws2_32
 
 #include <winsock2.h> // Pour les sockets Windows
 #include <ws2tcpip.h> // Pour les focntionnalités de sockets TCP/IP
@@ -8,8 +8,8 @@
 int main() {
     WSADATA wsaData; // Pour intialiser Winsock
 
-    char str[100]; // Réception de la chaîne de caractères
-    char sendline[100]; // Pour les messages envoyés
+    char str[500]; // Réception de la chaîne de caractères
+    char sendline[500]; // Pour les messages envoyés
     memset(sendline, 0, 100); // Initialise sendline à 0 pour éviter la lecture de données indésirables
 
     int listen_fd, comm_fd; // Descripteurs de socket (fichiers seront utiliser pour écouter les connexions entrantes et pour communiquer avec le client)
@@ -30,7 +30,6 @@ int main() {
     }
 
     // Configuration de l'adresse du serveur
-    memset(str, 0, sizeof(str)); // Initialise str à 0 pour éviter la lecture de données indésirables
     memset(&servaddr, 0, sizeof(servaddr)); // Initialise servaddr à 0 pour éviter la lecture de données indésirables
 
     // Définition de l'adresse du serveur
@@ -69,18 +68,34 @@ int main() {
     // Communication avec le client 
     // Booucle infinie pour recevoir et envoyer des messages
     while(1) {
+        memset(str, 0, sizeof(str)); // Initialise str à 0 pour éviter la lecture de données indésirables
+        memset(sendline, 0, sizeof(sendline)); // Initialise sendline à 0 pour éviter la lecture de données indésirables
+
         // Réception d'un message du client
         int str_received = recv(comm_fd, str, sizeof(str) -1, 0); // -1 pour laisser de la place pour le caractère nul
         if(str_received <= 0) { // Si la réception échoue ou si le client se déconnecte
             printf("Erreur de réception ou client déconnecté.\n");
             break;
         }
+
         str[str_received] = '\0'; // Ajoute un caractère nul à la fin de la chaîne recue pour la rendre une chaine C valide
         printf("Client: %s", str); 
-        printf("Votre message : ");
+
+        // Vérifie si le client a envoyé "exit" pour fermer la connexion
+        if(strcmp(str, "exit") == 0) {
+            printf("\nLe client a quitté la conversation.\n");
+            break;
+        }
+
+        printf("\nVotre message : ");
         fgets(sendline, sizeof(sendline), stdin); //  Lit la ligne saisie au clavier et la stocke dans sendline 
-        send(comm_fd, sendline, strlen(sendline), 0); // Envoie le message au client
-        memset(sendline, 0, sizeof(sendline)); // Réinitialise sendline pour la prochaine réception
+        sendline[strcspn(sendline, "\n")] = '\0'; // Supprime le saut de ligne à la fin de la chaîne pour en faire une chaine de caractères C valide
+        // D'ailleurs attention : la fonction fgets() ajoute un saut de ligne à la fin de la chaîne, donc il faut le supprimer manuellement.
+
+        if(send(comm_fd, sendline, strlen(sendline), 0) == -1) {
+            printf("Erreur d'envoi du message au client.\n");
+            break;
+        } // Envoie le message au client
     }
 
     // Fermeture des sockets

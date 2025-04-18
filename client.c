@@ -3,7 +3,7 @@
 // IPv6 : Pour IPv6, l'adresse de boucle locale est ::1.
 // Nom d'hôte : En plus des adresses IP, vous pouvez également utiliser le nom d'hôte localhost, qui est résolu en 127.0.0.1.
 
-// Pour compiler ce code : gcc client.c -o client -llws2_32
+// Pour compiler ce code : gcc client.c -o client -lws2_32
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -13,8 +13,8 @@
 int main() {
     WSADATA wsaData;
     int sockfd; // Descrispteur de fichier pour le socket utilisée pour la communication
-    char sendline[100];
-    char recvline[100];
+    char sendline[500];
+    char recvline[500];
     struct sockaddr_in servaddr;
 
     // Initialisation de Wonsock
@@ -32,8 +32,6 @@ int main() {
     }
 
     // Réinitialisation des buffers et de la Structure d'adresse
-    memset(sendline, 0, sizeof(sendline)); 
-    memset(recvline, 0, sizeof(recvline));
     memset(&servaddr, 0, sizeof(servaddr));
 
     // Configuration de l'adresse du serveur
@@ -51,9 +49,15 @@ int main() {
 
     // Boucle de communication 
     while(1) {
-        printf("Votre message (ou tapez 'exit' pour quitter): ");
+        printf("\nVotre message (ou tapez 'exit' pour quitter): ");
         fgets(sendline, sizeof(sendline), stdin);
         sendline[strcspn(sendline, "\n")] = 0; // Supprime le saut de ligne à la fin de la chaîne
+
+        // Envoi le message au serveur
+        if(send(sockfd, sendline, strlen(sendline), 0) == SOCKET_ERROR) {
+            printf("Erreur d'envoi du message.\n");
+            break;
+        }
 
         // Vérification de la commande de sortie
         // strcmp(): Compare deux chaînes de caractères. Si elles sont égales, elle retourne 0.
@@ -62,14 +66,18 @@ int main() {
             break;
         }
 
-        // Envoi le message au serveur
-        send(sockfd, sendline, strlen(sendline), 0);
-
         // Réception de la réponse du serveur
-        recv(sockfd, recvline, sizeof(recvline)-1, 0);
-        recvline[sizeof(recvline)-1] = '\0';
+        memset(recvline, 0, sizeof(recvline));
+        int recv_len = recv(sockfd, recvline, sizeof(recvline)-1, 0);
+        if(recv_len <= 0) {
+            printf("Erreur de réception du message.\n");
+            break;
+        }
 
+        recvline[sizeof(recvline)-1] = '\0';
         printf("Message du serveur : %s", recvline); 
+
+        memset(sendline, 0, sizeof(sendline)); 
     }
     
     // Fermeture du socket
