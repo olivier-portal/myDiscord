@@ -14,7 +14,7 @@ if errorlevel 1 (
     exit /b
 )
 
-cmake --build .
+cmake --build . --config Debug
 if exist myDiscord.exe (
     echo Build réussi. Lancement de l'application...
     myDiscord.exe

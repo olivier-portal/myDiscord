@@ -1,8 +1,9 @@
 # Myconfig
 config.txt
 .config
-build/
-.vscode/
+/build/
+/.vscode/
+CMakeLists.txt
 # Prerequisites
 *.d
 

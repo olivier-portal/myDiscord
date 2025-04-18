@@ -3,10 +3,11 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <libpq-fe.h>
+#include <direct.h> // Use this for _chdir on Windows
 
 // 🔧 Fonction pour lire config.txt
-char* load_conninfo_from_file(const char* filename) {
-    FILE *file = fopen(filename, "r");
+char* load_conninfo_from_file(const char* filepath) {
+    FILE *file = fopen(filepath, "r");
     if (!file) {
         perror("Erreur ouverture config.txt");
         return NULL;
@@ -35,12 +36,19 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     GtkWidget *window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "myDiscord - GTK4 + PostgreSQL");
     gtk_window_set_default_size(GTK_WINDOW(window), 400, 200);
-    gtk_widget_show(window);
+    gtk_widget_set_visible(window, TRUE); // Replaces gtk_widget_show
 }
 
 int main(int argc, char *argv[]) {
+    printf("🟡 Changement du répertoire de travail...\n");
+    if (_chdir("d:/_Thibault/Documents/_Plateforme/!Dev_log_1/MyDiscord/myDiscord") != 0) { // Use _chdir for Windows
+        perror("❌ Impossible de changer le répertoire de travail");
+        system("pause");
+        return 1;
+    }
+
     printf("🟡 Lecture config...\n");
-    char *conninfo = load_conninfo_from_file("config.txt");
+    char *conninfo = load_conninfo_from_file("config.txt"); // Use the correct relative path
     if (!conninfo) {
         fprintf(stderr, "❌ config.txt manquant ou illisible\n");
         system("pause");
