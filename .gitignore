@@ -1,7 +1,7 @@
 # Myconfig
 config.txt
-build/
-.vscode/
+/build/
+/.vscode/
 
 # Prerequisites
 *.d
