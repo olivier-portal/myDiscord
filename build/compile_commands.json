@@ -1,8 +1,0 @@
-[
-{
-  "directory": "C:/Users/porta/OneDrive/Documents/La plateforme/C/myDiscord/build",
-  "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe -IC:/msys64/ucrt64/bin/../include/gtk-4.0 -IC:/msys64/ucrt64/bin/../include/pango-1.0 -IC:/msys64/ucrt64/bin/../include/fribidi -IC:/msys64/ucrt64/bin/../include/harfbuzz -IC:/msys64/ucrt64/bin/../include/gdk-pixbuf-2.0 -IC:/msys64/ucrt64/bin/../include/webp -IC:/msys64/ucrt64/bin/../include/cairo -IC:/msys64/ucrt64/bin/../include/freetype2 -IC:/msys64/ucrt64/bin/../include/libpng16 -IC:/msys64/ucrt64/bin/../include/pixman-1 -IC:/msys64/ucrt64/bin/../include/graphene-1.0 -IC:/msys64/ucrt64/bin/../lib/graphene-1.0/include -IC:/msys64/ucrt64/bin/../include/glib-2.0 -IC:/msys64/ucrt64/bin/../lib/glib-2.0/include -g -std=gnu11 -o CMakeFiles\\myDiscord.dir\\src\\main.c.obj -c \"C:\\Users\\porta\\OneDrive\\Documents\\La plateforme\\C\\myDiscord\\src\\main.c\"",
-  "file": "C:\\Users\\porta\\OneDrive\\Documents\\La plateforme\\C\\myDiscord\\src\\main.c",
-  "output": "CMakeFiles\\myDiscord.dir\\src\\main.c.obj"
-}
-]
