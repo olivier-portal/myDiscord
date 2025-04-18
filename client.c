@@ -3,9 +3,7 @@
 // IPv6 : Pour IPv6, l'adresse de boucle locale est ::1.
 // Nom d'hôte : En plus des adresses IP, vous pouvez également utiliser le nom d'hôte localhost, qui est résolu en 127.0.0.1.
 
-
-
-
+// Pour compiler ce code : gcc client.c -o client -llws2_32
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -53,11 +51,24 @@ int main() {
 
     // Boucle de communication 
     while(1) {
-        printf("Votre message : ");
+        printf("Votre message (ou tapez 'exit' pour quitter): ");
         fgets(sendline, sizeof(sendline), stdin);
+        sendline[strcspn(sendline, "\n")] = 0; // Supprime le saut de ligne à la fin de la chaîne
+
+        // Vérification de la commande de sortie
+        // strcmp(): Compare deux chaînes de caractères. Si elles sont égales, elle retourne 0.
+        if(strcmp(sendline, "exit") == 0) {
+            printf("Fermeture de la connexion...\n");
+            break;
+        }
+
+        // Envoi le message au serveur
         send(sockfd, sendline, strlen(sendline), 0);
+
+        // Réception de la réponse du serveur
         recv(sockfd, recvline, sizeof(recvline)-1, 0);
         recvline[sizeof(recvline)-1] = '\0';
+
         printf("Message du serveur : %s", recvline); 
     }
     

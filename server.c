@@ -1,3 +1,5 @@
+// Pour compiler ce code : gcc server.c -o server -llws2_32
+
 #include <winsock2.h> // Pour les sockets Windows
 #include <ws2tcpip.h> // Pour les focntionnalités de sockets TCP/IP
 #include <stdio.h>
