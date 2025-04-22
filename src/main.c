@@ -2,34 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <libpq-fe.h>
 #include <direct.h> // Use this for _chdir on Windows
-
-// 🔧 Fonction pour lire config.txt
-char* load_conninfo_from_file(const char* filepath) {
-    FILE *file = fopen(filepath, "r");
-    if (!file) {
-        perror("Erreur ouverture config.txt");
-        return NULL;
-    }
-
-    static char conninfo[512] = "";
-    char line[128];
-
-    while (fgets(line, sizeof(line), file)) {
-        // Supprimer le saut de ligne
-        line[strcspn(line, "\r\n")] = 0;
-
-        // Ignorer lignes vides ou commentaires
-        if (line[0] == '\0' || line[0] == '#') continue;
-
-        strcat(conninfo, line);
-        strcat(conninfo, " ");
-    }
-
-    fclose(file);
-    return conninfo;
-}
+#include "database/db_connection.h"
 
 // 🖼️ Fonction appelée à l'ouverture de la fenêtre GTK
 static void on_activate(GtkApplication *app, gpointer user_data) {
@@ -40,39 +14,37 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
 }
 
 int main(int argc, char *argv[]) {
-    printf("🟡 Changement du répertoire de travail...\n");
+    printf("Changement du répertoire de travail...\n");
     if (_chdir("d:/_Thibault/Documents/_Plateforme/!Dev_log_1/MyDiscord/myDiscord") != 0) { // Use _chdir for Windows
         perror("❌ Impossible de changer le répertoire de travail");
         system("pause");
         return 1;
     }
 
-    printf("🟡 Lecture config...\n");
-    char *conninfo = load_conninfo_from_file("config.txt"); // Use the correct relative path
-    if (!conninfo) {
-        fprintf(stderr, "❌ config.txt manquant ou illisible\n");
+    printf("Lecture de la configuration de la base de données...\n");
+    DBConfig config;
+    if (!load_db_config("db_config.txt", &config)) { // Load the database configuration
+        fprintf(stderr, "❌ Impossible de charger la configuration de la base de données.\n");
         system("pause");
         return 1;
     }
 
-    printf("🟡 Connexion à PostgreSQL...\n");
-    PGconn *conn = PQconnectdb(conninfo);
-    if (PQstatus(conn) != CONNECTION_OK) {
-        fprintf(stderr, "❌ Erreur PostgreSQL: %s\n", PQerrorMessage(conn));
-        PQfinish(conn);
+    printf("Connexion à PostgreSQL...\n");
+    PGconn *conn = connect_to_database(&config); // Connect to the database
+    if (!conn) {
         system("pause");
         return 1;
     }
 
     printf("✅ Connexion PostgreSQL réussie.\n");
-    PQfinish(conn);
+    disconnect_from_database(conn); // Disconnect from the database
 
-    printf("🟢 Lancement de GTK...\n");
+    printf("Lancement de GTK...\n");
     GtkApplication *app = gtk_application_new("com.jinx.myDiscord", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
 
-    printf("🏁 Fin du programme (GTK fermée).\n");
+    printf("Fin du programme (GTK fermée).\n");
     return status;
 }

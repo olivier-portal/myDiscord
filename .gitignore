@@ -1,6 +1,5 @@
 # Myconfig
-config.txt
-.config
+db_config.txt
 /build/
 /.vscode/
 CMakeLists.txt

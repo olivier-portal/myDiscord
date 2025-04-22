@@ -14,11 +14,10 @@ CREATE TABLE IF NOT EXISTS Client(
    UNIQUE(email)
 );
 
-CREATE TYPE status as ENUM ('private', 'public');
 CREATE TABLE IF NOT EXISTS Channel(
    Id_channel SERIAL,
    name_channel VARCHAR(50) NOT NULL,
-   status status NOT NULL, /* cstatus type = ENUM (private, public) */
+   is_private BOOLEAN NOT NULL DEFAULT false,
    PRIMARY KEY(Id_channel),
    UNIQUE(name_channel)
 );
