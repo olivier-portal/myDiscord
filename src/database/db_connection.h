@@ -2,9 +2,6 @@
 #define DB_CONNECTION_H
 
 #include <libpq-fe.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // Structure to hold database configuration
 typedef struct {
@@ -16,12 +13,12 @@ typedef struct {
 } DBConfig;
 
 // Load database configuration from a file
-int load_db_config(const char* filepath, DBConfig* config);
+int load_db_config(const char* filepath, DBConfig *config);
 
 // Connect to the database using a DBConfig structure
-PGconn* connect_to_database(const DBConfig* config);
+PGconn *connect_to_database(const DBConfig *config);
 
 // Disconnect from the database
-void disconnect_from_database(PGconn* conn);
+void disconnect_from_database(PGconn *conn);
 
 #endif // DB_CONNECTION_H

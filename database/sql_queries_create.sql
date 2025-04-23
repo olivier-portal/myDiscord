@@ -2,6 +2,9 @@ DROP DATABASE IF EXISTS mydiscord;
 CREATE DATABASE discord_test;
 USE discord_test; /* doesn't work in postgres, use createdb or psql -U postgres -d MyDiscord */
 
+ALTER TABLE Message ADD COLUMN Id_sender INTEGER NOT NULL;
+ALTER TABLE Message ADD CONSTRAINT fk_message_sender FOREIGN KEY (Id_sender) REFERENCES Client(Id_client);
+
 CREATE TABLE IF NOT EXISTS Client(
    Id_client SERIAL,
    name VARCHAR(50) NOT NULL,
@@ -27,8 +30,10 @@ CREATE TABLE IF NOT EXISTS Message(
    contenu VARCHAR(500),
    date_message TIMESTAMP,
    Id_channel INTEGER NOT NULL,
+   Id_sender INTEGER NOT NULL,
    PRIMARY KEY(Id_message),
-   FOREIGN KEY(Id_channel) REFERENCES Channel(Id_channel)
+   FOREIGN KEY(Id_channel) REFERENCES Channel(Id_channel),
+   FOREIGN KEY(Id_sender) REFERENCES Client(Id_client)
 );
 
 CREATE TYPE emoji as ENUM ('smile', 'sad', 'angry', 'love', 'laugh', 'surprised', 'wink', 'crying', 'thumbsup', 'thumbsdown');

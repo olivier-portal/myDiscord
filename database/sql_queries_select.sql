@@ -12,4 +12,6 @@ WHERE t.typtype = 'e'; -- 'e' indicates enum types
 SELECT t.typname AS type_name,
        e.enumlabel AS value
 FROM pg_enum e
-JOIN pg_type t ON e.enumtypid = t.oid;;
+JOIN pg_type t ON e.enumtypid = t.oid;
+
+SELECT * FROM message WHERE Id_channel = 1;

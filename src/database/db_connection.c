@@ -1,6 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "db_connection.h"
 
-int load_db_config(const char* filepath, DBConfig* config) {
+int load_db_config(const char *filepath, DBConfig *config) {
     FILE *file = fopen(filepath, "r");
     if (!file) {
         perror("Erreur ouverture db_config.txt");
@@ -16,8 +19,8 @@ int load_db_config(const char* filepath, DBConfig* config) {
         if (line[0] == '\0' || line[0] == '#') continue;
 
         // Parse key-value pairs
-        char* key = strtok(line, "=");
-        char* value = strtok(NULL, "=");
+        char *key = strtok(line, "=");
+        char *value = strtok(NULL, "=");
 
         if (strcmp(key, "host") == 0) {
             strncpy(config->host, value, sizeof(config->host) - 1);
@@ -36,7 +39,7 @@ int load_db_config(const char* filepath, DBConfig* config) {
     return 1;
 }
 
-PGconn* connect_to_database(const DBConfig* config) {
+PGconn *connect_to_database(const DBConfig* config) {
     char conninfo[512];
     snprintf(conninfo, sizeof(conninfo),
              "host=%s port=%d dbname=%s user=%s password=%s",
@@ -54,7 +57,7 @@ PGconn* connect_to_database(const DBConfig* config) {
     return conn;
 }
 
-void disconnect_from_database(PGconn* conn) {
+void disconnect_from_database(PGconn *conn) {
     if (conn) {
         PQfinish(conn);
         printf("✅ Déconnexion de la base de données réussie.\n");
