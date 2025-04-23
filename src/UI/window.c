@@ -1,9 +1,23 @@
 #include <gtk/gtk.h>
 #include "window.h"
 
-void on_activate(GtkApplication *app, gpointer user_data) {
-    GtkWidget *win = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(win), "Hello GTK4");
-    gtk_window_set_default_size(GTK_WINDOW(win), 400, 300);
-    gtk_widget_set_visible(win, TRUE);
+void print_hello (GtkWidget *widget, gpointer data)
+{
+  g_print ("Hello World\n");
+}
+
+void on_activate (GtkApplication *app, gpointer user_data)
+{
+  GtkWidget *window;
+  GtkWidget *button;
+
+  window = gtk_application_window_new (app);
+  gtk_window_set_title (GTK_WINDOW (window), "Hello");
+  gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
+
+  button = gtk_button_new_with_label ("Hello World");
+  g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
+  gtk_window_set_child (GTK_WINDOW (window), button);
+
+  gtk_window_present (GTK_WINDOW (window));
 }
