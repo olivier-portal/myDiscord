@@ -1,8 +1,5 @@
 #include <gtk/gtk.h>
 #include <glib.h> // pour GThread
-
-#include "config/config.h"
-#include "server/server_socket.h"
 #include "client/client_socket.h"
 #include "ui/window.h"
 
@@ -23,8 +20,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // 🧵 Lancer serveur & client dans des threads
-    g_thread_new("server_thread", (GThreadFunc)start_server, NULL);
+
     g_thread_new("client_thread", (GThreadFunc)start_client, NULL);
 
     // 🚀 Lancer l'application GTK

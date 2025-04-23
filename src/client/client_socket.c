@@ -2,6 +2,7 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 #include <string.h>
+#include "client_socket.h"
 
 void run_client() {
     WSADATA wsaData;
@@ -64,3 +65,15 @@ void run_client() {
     closesocket(sockfd);
     WSACleanup();
 }
+
+void start_client() {
+    printf("🟢 Client intégré lancé\n");
+    run_client();
+}
+
+#ifdef TEST_CLIENT_MAIN
+int main() {
+    run_client();
+    return 0;
+}
+#endif

@@ -42,7 +42,7 @@ void start_server() {
         return;
     }
 
-    printf("🟢 Serveur lancé (placeholder)\n");
+    printf("🟢 Serveur lancé (intégré ou standalone)\n");
 
     comm_fd = accept(listen_fd, NULL, NULL);
     if (comm_fd == INVALID_SOCKET) {
@@ -85,6 +85,7 @@ void start_server() {
     WSACleanup();
 }
 
+// 🔹 Main standalone conditionnel
 #ifdef TEST_SERVER_MAIN
 int main() {
     start_server();
