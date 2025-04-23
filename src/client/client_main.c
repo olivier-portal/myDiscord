@@ -1,12 +1,8 @@
 #include <gtk/gtk.h>
 #include <glib.h> // pour GThread
-#include "client/client_socket.h"
-#include "ui/window.h"
-
-static gpointer server_thread_func(gpointer data) {
-    start_server();
-    return NULL;
-}
+#include "client_socket.h"
+#include "../ui/window.h"
+#include "../config/config.h"
 
 static gpointer client_thread_func(gpointer data) {
     start_client();
