@@ -21,3 +21,61 @@ int write_message(PGconn* conn, const Message* message) {
     PQclear(res);
     return 1;
 }
+
+int edit_message(PGconn* conn, int message_id, int user_id, const char* new_content) {
+    const char* query = "UPDATE Message SET content = $1 WHERE Id_message = $2 AND Id_sender = $3";
+    char message_id_str[12], user_id_str[12];
+    snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
+    snprintf(user_id_str, sizeof(user_id_str), "%d", user_id);
+
+    PGresult* res = PQexecParams(conn, query, 3, NULL, (const char*[]){new_content, message_id_str, user_id_str}, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "❌ Erreur lors de la modification du message: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return 0;
+    }
+
+    printf("✅ Message modifié avec succès.\n");
+    PQclear(res);
+    return 1;
+}
+
+Message* fetch_channel_messages(PGconn* conn, int channel_id, int* message_count) {
+    const char* query = "SELECT Id_message, content, date_message, Id_sender FROM Message WHERE Id_channel = $1 ORDER BY date_message ASC";
+    char channel_id_str[12];
+    snprintf(channel_id_str, sizeof(channel_id_str), "%d", channel_id);
+
+    PGresult* res = PQexecParams(conn, query, 1, NULL, (const char*[]){channel_id_str}, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "❌ Erreur lors de la récupération des messages: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        *message_count = 0;
+        return NULL;
+    }
+
+    int rows = PQntuples(res);
+    *message_count = rows;
+
+    // Allocate memory for the array of Message structs
+    Message* messages = (Message*)malloc(rows * sizeof(Message));
+    if (!messages) {
+        fprintf(stderr, "❌ Erreur d'allocation mémoire pour les messages.\n");
+        PQclear(res);
+        *message_count = 0;
+        return NULL;
+    }
+
+    // Populate the array of 'messages' with data from the query result
+    for (int i = 0; i < rows; i++) {
+        messages[i].id = atoi(PQgetvalue(res, i, 0));
+        strncpy(messages[i].content, PQgetvalue(res, i, 1), sizeof(messages[i].content) - 1);
+        strncpy(messages[i].date, PQgetvalue(res, i, 2), sizeof(messages[i].date) - 1);
+        messages[i].sender_id = atoi(PQgetvalue(res, i, 3));
+        messages[i].channel_id = channel_id; // Set the channel ID
+    }
+
+    PQclear(res);
+    return messages;
+}

@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS Channel(
 
 CREATE TABLE IF NOT EXISTS Message(
    Id_message SERIAL,
-   contenu VARCHAR(500),
+   content VARCHAR(500),
    date_message TIMESTAMP,
    Id_channel INTEGER NOT NULL,
    Id_sender INTEGER NOT NULL,
