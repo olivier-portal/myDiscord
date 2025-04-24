@@ -1,8 +1,10 @@
 # Myconfig
 db_config.txt
+config.txt
 /build/
 /.vscode/
 CMakeLists.txt
+
 # Prerequisites
 *.d
 
