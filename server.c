@@ -21,6 +21,8 @@ int main() {
         return 1;
     }
 
+    // connexion base de donnée
+
     // Création de la socket d'écoute (TCP)
     listen_fd = socket(AF_INET, SOCK_STREAM, 0); // AF_INET pour IPv4, SOCK_STREAM pour TCP
     if(listen_fd == INVALID_SOCKET) {

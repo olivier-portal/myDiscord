@@ -1,0 +1,78 @@
+// programme client
+
+INITIALISER_SOCKET() // Initialiser le socket pour la communication
+
+// Variables utilisées pour la gestion des messages
+BOOL envoiEnCours = False // Indique si l'utilisateur a envoyé un message
+STRING messageStocke = "" // Stocke le message de l'utilisateur avant l'envoi
+
+
+// Fonction qui sera appelée lorsqu'un nouveau message arrive
+FONCTION TRAITER_MESSAGE_RECU(MESSAGE):
+SI bytes_read > 0 ALORS
+    // Convertir le buffer en chaîne de caractères
+    chaîne = convertir(buffer, bytes_read);
+
+    // Vérifier si la chaîne reçue est un objet JSON vide
+    SI chaîne == "{}" ALORS
+        AFFICHER "Objet JSON vide reçu";
+    SINON
+        // Tenter de parser la chaîne en JSON
+        json_données = parser_JSON(chaîne);
+         AFFICHER_MESSAGE_DANS_INTERFACE(MESSAGE) // Afficher le message dans l'interface
+
+        SI json_données EST NULL ALORS
+            AFFICHER "Erreur de parsing JSON, données invalides";
+        SINON
+            // Traiter les données JSON
+            traiter_données(json_données);
+        FIN SI
+    FIN SI
+SINON SI bytes_read == 0 ALORS
+    AFFICHER "Connexion fermée par le client";
+SINON
+    AFFICHER "Erreur de lecture";
+FIN SI
+
+
+// Fonction pour gérer la réception des messages
+FONCTION RECEVOIR_MESSAGES():
+ MESSAGE = recv(socket) // Recevoir un message du serveur
+ SI MESSAGE EST NOT NULL:
+ TRAITER_MESSAGE_RECU(MESSAGE) // Traiter le message reçu
+Attention, a voir comment je peux retourner un buffer ou queue qui renvoie l'information "pas de message"
+
+// Fonction pour envoyer un message
+FONCTION ENVOYER_MESSAGE(MESSAGE):
+
+ send(socket, MESSAGE) // Envoyer le message au serveur
+ AJOUTER_MESSAGE_DANS_INTERFACE(MESSAGE) // Afficher le message dans l'interface
+ messageStocke = "" // Réinitialiser le message stocké
+
+// Fonction pour charger l'historique des messages
+FONCTION CHARGER_HISTORIQUE():
+ HISTORIQUE = RECEVOIR_MESSAGES() // Charger tous les messages historiques
+ AFFICHER_HISTORIQUE(HISTORIQUE) // Afficher l'historique dans l'interface
+
+
+
+// Charger l'historique des messages au démarrage
+CHARGER_HISTORIQUE()
+
+// Boucle principale de l'application
+TANT QUE True:
+    // verifie si l'utilisateur à cliqueé sur le bouton envoyer.
+ // Vérifier si un envoi est en cours
+ SI NOT envoiEnCours:
+  MESSAGE_RECU = RECEVOIR_MESSAGES() // Vérifier les nouveaux messages
+  // Éventuellement affichage pour "Pas de nouveau message" ici
+  
+ // Gérer la saisie de l'utilisateur
+ MESSAGE_ENTREE = LIRE_ENTREE_UTILISATEUR() // Attendre que l'utilisateur saisisse un message
+ messageStocke = MESSAGE_ENTREE // Stocker le message saisi
+ envoiEnCours = True // Indiquer que l'utilisateur a un message à envoyer
+
+ // Une fois que l'utilisateur a terminé sa saisie (par exemple, en appuyant sur un bouton)
+ SI BOUTON_ENVOYE_PRESSED(): // Exemple de détection d'événement
+ ENVOYER_MESSAGE(messageStocke) // Appeler la fonction d'envoi
+ envoiEnCours = False // Réinitialiser l'état

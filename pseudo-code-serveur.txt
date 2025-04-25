@@ -1,0 +1,86 @@
+DEBUT
+
+ // Inclure les bibliothèques nécessaires pour PostgreSQL et les sockets et JSON
+
+ // Déclarer la fonction de sérialisation :
+ // Déclarer la fonction de désérialisation : 
+
+ // Déclarer la fonction du thread qui gère la connexion
+ FONCTION handle_client(client_id)
+     // Récupérer les détails du client
+     DECLARER socket_id comme INTEGER = client_id
+     DECLARER buffer comme CHAINE
+     DECLARER bytes_read comme INTEGER
+
+     // Initialiser le buffer
+     buffer = ""
+
+     // Boucle de traitement des messages du client
+     TANT QUE VRAI FAIRE
+         // Lire le message du client
+         bytes_read = read(socket_id, buffer, BUFFER_SIZE)
+         SI bytes_read <= 0 ALORS
+             // Aucune donnée reçue ou erreur
+             AFFICHER "Erreur lors de la lecture du socket ou le client a déconnecté"
+             QUITTER
+         FIN SI
+
+         buffer[bytes_read] = '\0' // Terminer la chaîne
+
+         // Traitement du message reçu (logique à ajouter ici)
+         AFFICHER "Message reçu du client ", client_id, ": ", buffer
+
+         // Répondre au client (vous pouvez personnaliser cette réponse)
+         write(socket_id, "Message reçu", strlen("Message reçu"))
+     FIN TANT QUE
+
+     // Fermer le socket client après traitement
+     fermer(socket_id)
+ FIN FONCTION
+
+ // Initialiser le serveur
+ DECLARER server_fd comme INTEGER
+ DECLARER client_data comme ClientData
+ DECLARER res comme TYPE_PQresult
+ DECLARER conn comme TYPE_PGconn
+ DEFINE PORT = 8080
+
+ // Établir la connexion à la base de données PostgreSQL
+ conn = PQconnectdb("dbname=your_database user=your_user password=your_password host=localhost port=5432")
+ SI PQstatus(conn) != CONNECTION_OK ALORS
+     AFFICHER "Échec de la connexion à la base de données"
+     TERMINER
+ FIN SI
+
+ // Créer un socket, lier, écouter, etc. (comme dans la version précédente)
+
+ TANT QUE VRAI FAIRE
+     // Accepter une connexion
+     client_data.socket_id = accept(server_fd, NULL, NULL)
+     SI client_data.socket_id < 0 ALORS
+         AFFICHER "Échec de l'acceptation de la connexion"
+         CONTINUER
+     FIN SI
+
+     // Récupérer un nouvel ID client à partir de la base de données
+     res = PQexec(conn, "INSERT INTO clients DEFAULT VALUES RETURNING id;")
+     SI PQresultStatus(res) != PGRES_TUPLES_OK ALORS
+         AFFICHER "Échec de l'insertion du client"
+         fermer(client_data.socket_id)
+         CONTINUER
+     FIN SI
+
+     client_data.client_id = atoi(PQgetvalue(res, 0, 0)) // Récupérer l'ID du client
+     PQclear(res) // Libérer le résultat de la requête
+
+     // Créer un nouveau thread pour gérer la connexion
+     CREER_THREAD(handle_client, client_data)
+
+ FIN TANT QUE
+
+ // Nettoyage : fermer la connexion à la base de données et au serveur
+ PQfinish(conn) // Fermer la connexion à PostgreSQL
+ fermer(server_fd) // Fermer le socket du serveur (si pertinent)
+
+FIN
+
