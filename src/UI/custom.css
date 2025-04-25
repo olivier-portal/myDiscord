@@ -1,0 +1,39 @@
+#sidebar {
+    background-color: #2b2b2b;
+    border-right: 2px solid #555;
+    padding: 10px;
+    color: #eee;
+}
+
+#chatview {
+    background-color: #1e1e1e;
+    color: #eee;
+    border: 1px solid #444;
+    padding: 10px;
+}
+
+headerbar,
+headerbar:backdrop,
+headerbar:active {
+    all: unset;
+}
+
+#main-header {
+    background-color: #2b2b2b;
+    color: #ffffff;
+    padding: 8px;
+    border: 1px solid #444;
+    box-shadow: none;
+}
+
+#main-header .title {
+    color: #dddddd;
+    font-weight: bold;
+}
+
+#main-header button,
+#main-header button image {
+    color: #cccccc;
+    background: transparent;
+    border: none;
+}

@@ -35,4 +35,21 @@ add_executable(client
 )
 target_link_libraries(client ${GTK_LIBRARIES} ${PostgreSQL_LIBRARIES} ws2_32)
 
+# Chemin vers le fichier CSS source
+set(CSS_SOURCE "${CMAKE_SOURCE_DIR}/src/ui/custom.css")
+
+# Dossier de destination après le build (build dir racine)
+set(CSS_DESTINATION "${CMAKE_BINARY_DIR}/custom.css")
+
+# Commande pour copier le fichier custom.css dans le dossier de build
+add_custom_command(
+    OUTPUT ${CSS_DESTINATION}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CSS_SOURCE} ${CSS_DESTINATION}
+    DEPENDS ${CSS_SOURCE}
+    COMMENT "📁 Copie de custom.css dans le dossier de build"
+)
+
+# Ajoute une cible de build dédiée au CSS pour l’intégrer dans le build principal
+add_custom_target(copy_css ALL DEPENDS ${CSS_DESTINATION})
+
 
