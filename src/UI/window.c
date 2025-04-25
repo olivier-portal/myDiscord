@@ -15,10 +15,8 @@ void apply_custom_theme() {
     gchar *theme_path = g_build_filename(g_get_home_dir(), ".themes", "MyBreeze-Dark-GTK", "gtk-4.0", "gtk.css", NULL);
 #endif
 
-    g_print("📂 Chargement du thème GTK depuis : [%s]\n", theme_path);
-
     if (!g_file_test(theme_path, G_FILE_TEST_EXISTS)) {
-        g_printerr("❌ Le fichier thème est introuvable : [%s]\n", theme_path);
+        g_printerr("The theme file has not been found : [%s]\n", theme_path);
     } else {
         GFile *file = g_file_new_for_path(theme_path);
         gtk_css_provider_load_from_file(provider, file);

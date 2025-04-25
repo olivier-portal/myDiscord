@@ -3,9 +3,9 @@
 #include "../config/config.h"
 
 int main() {
-    char *conninfo = load_conninfo_from_file("db_config.txt");
+    char *conninfo = load_conninfo_from_file("../db_config.txt");
     if (!conninfo) {
-        fprintf(stderr, "❌ config.txt manquant ou illisible\n");
+        fprintf(stderr, "config.txt is missing or unreadable\n");
         return 1;
     }
 

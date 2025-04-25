@@ -10,16 +10,16 @@ static gpointer client_thread_func(gpointer data) {
 }
 
 int main(int argc, char *argv[]) {
-    char *conninfo = load_conninfo_from_file("db_config.txt");
+    char *conninfo = load_conninfo_from_file("../db_config.txt");
     if (!conninfo) {
-        g_printerr("❌ db_config.txt manquant ou illisible\n");
+        g_printerr("db_config.txt missing or unreadable\n");
         return 1;
     }
 
 
     g_thread_new("client_thread", (GThreadFunc)start_client, NULL);
 
-    // 🚀 Lancer l'application GTK
+    // Launch gtk
     GtkApplication *app = gtk_application_new("com.jinx.myDiscord", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
     int status = g_application_run(G_APPLICATION(app), argc, argv);

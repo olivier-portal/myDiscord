@@ -12,13 +12,13 @@ void run_client() {
     struct sockaddr_in servaddr;
 
     if(WSAStartup(MAKEWORD(2, 2), &wsaData)!=0) {
-        printf("Erreur d'initialisation de Winsock.\n");
+        printf("Error: Winsock did not init.\n");
         return;
     }
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(sockfd == INVALID_SOCKET) {
-        printf("Erreur de création du socket.\n");
+        printf("Error: Socket creation failed.\n");
         WSACleanup();
         return;
     }
@@ -29,7 +29,7 @@ void run_client() {
     servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     if(connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == SOCKET_ERROR) {
-        printf("Erreur de connexion au serveur.\n");
+        printf("Error: Connexion to server failed.\n");
         closesocket(sockfd);
         WSACleanup();
         return;
@@ -67,7 +67,7 @@ void run_client() {
 }
 
 void start_client() {
-    printf("🟢 Client intégré lancé\n");
+    printf("Client intégré lancé\n");
     run_client();
 }
 
