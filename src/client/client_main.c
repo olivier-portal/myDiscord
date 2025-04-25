@@ -10,7 +10,7 @@ static gpointer client_thread_func(gpointer data) {
 }
 
 int main(int argc, char *argv[]) {
-    char *conninfo = load_conninfo_from_file("config.txt");
+    char *conninfo = load_conninfo_from_file("db_config.txt");
     if (!conninfo) {
         g_printerr("❌ config.txt manquant ou illisible\n");
         return 1;
