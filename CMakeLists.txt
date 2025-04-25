@@ -33,7 +33,7 @@ include_directories(${GTK_INCLUDE_DIRS})
 link_directories(${GTK_LIBRARY_DIRS})
 
 # Define source files
-file(GLOB_RECURSE SOURCES "src/*.c")
+file(GLOB_RECURSE SOURCES "src/*")
 
 message(STATUS "Sources détectées : ${SOURCES}")
 
