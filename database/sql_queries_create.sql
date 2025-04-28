@@ -28,12 +28,13 @@ CREATE TABLE IF NOT EXISTS Channel(
 CREATE TABLE IF NOT EXISTS Message(
    Id_message SERIAL,
    content VARCHAR(500),
-   date_message TIMESTAMP,
-   Id_channel INTEGER NOT NULL,
+   date_message TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   last_edit TIMESTAMP,
    Id_sender INTEGER NOT NULL,
+   Id_channel INTEGER NOT NULL,
    PRIMARY KEY(Id_message),
-   FOREIGN KEY(Id_channel) REFERENCES Channel(Id_channel),
-   FOREIGN KEY(Id_sender) REFERENCES Client(Id_client)
+   FOREIGN KEY(Id_sender) REFERENCES Client(Id_client),
+   FOREIGN KEY(Id_channel) REFERENCES Channel(Id_channel)
 );
 
 CREATE TYPE emoji as ENUM ('smile', 'sad', 'angry', 'love', 'laugh', 'surprised', 'wink', 'crying', 'thumbsup', 'thumbsdown');
@@ -50,7 +51,7 @@ CREATE TABLE IF NOT EXISTS Reaction(
 CREATE TABLE IF NOT EXISTS Private_message(
    Id_private_message SERIAL,
    contenu VARCHAR(500),
-   date_message TIMESTAMP,
+   date_message TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
    Id_sender INTEGER NOT NULL,
    Id_target INTEGER NOT NULL,
    PRIMARY KEY(Id_private_message),

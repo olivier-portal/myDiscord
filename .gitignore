@@ -4,6 +4,7 @@ config.txt
 /build/
 /.vscode/
 CMakeLists.txt
+notes.md
 
 # Prerequisites
 *.d

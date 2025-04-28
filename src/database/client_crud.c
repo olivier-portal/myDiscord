@@ -4,7 +4,7 @@
 #include <string.h>
 
 int create_client_account(PGconn* conn, const Client* client) {
-    const char* query = "INSERT INTO Client (name, last_name, pseudo, password, email) VALUES ($1, $2, $3, $4, $5)";
+    const char* query = "INSERT INTO Client (first_name, last_name, pseudo, password, email) VALUES ($1, $2, $3, $4, $5)";
     PGresult* res = PQexecParams(conn, query, 5, NULL, (const char*[]){client->name, client->last_name, client->pseudo, client->password, client->email}, NULL, NULL, 0);
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {

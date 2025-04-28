@@ -23,7 +23,7 @@ int write_message(PGconn* conn, const Message* message) {
 }
 
 int edit_message(PGconn* conn, int message_id, int user_id, const char* new_content) {
-    const char* query = "UPDATE Message SET content = $1 WHERE Id_message = $2 AND Id_sender = $3";
+    const char* query = "UPDATE Message SET content = $1, last_edit = NOW() WHERE Id_message = $2 AND Id_sender = $3";
     char message_id_str[12], user_id_str[12];
     snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
     snprintf(user_id_str, sizeof(user_id_str), "%d", user_id);
@@ -42,7 +42,14 @@ int edit_message(PGconn* conn, int message_id, int user_id, const char* new_cont
 }
 
 Message* fetch_channel_messages(PGconn* conn, int channel_id, int* message_count) {
-    const char* query = "SELECT Id_message, content, date_message, Id_sender FROM Message WHERE Id_channel = $1 ORDER BY date_message ASC";
+    const char* query =
+        "SELECT m.Id_message, c.name_channel, COALESCE(u.pseudo, 'Anonymous user'), m.date_message, m.content "
+        "FROM message AS m "
+        "JOIN channel AS c ON c.Id_channel = m.Id_channel "
+        "LEFT JOIN client AS u ON u.Id_client = m.Id_sender "
+        "WHERE c.is_private = FALSE AND c.Id_channel = $1 "
+        "ORDER BY m.date_message ASC;";
+
     char channel_id_str[12];
     snprintf(channel_id_str, sizeof(channel_id_str), "%d", channel_id);
 
@@ -69,10 +76,9 @@ Message* fetch_channel_messages(PGconn* conn, int channel_id, int* message_count
 
     // Populate the array of 'messages' with data from the query result
     for (int i = 0; i < rows; i++) {
-        messages[i].id = atoi(PQgetvalue(res, i, 0));
-        strncpy(messages[i].content, PQgetvalue(res, i, 1), sizeof(messages[i].content) - 1);
+        strncpy(messages[i].content, PQgetvalue(res, i, 3), sizeof(messages[i].content) - 1);
         strncpy(messages[i].date, PQgetvalue(res, i, 2), sizeof(messages[i].date) - 1);
-        messages[i].sender_id = atoi(PQgetvalue(res, i, 3));
+        messages[i].sender_id = -1; // Default value for sender_id (not fetched in this query)
         messages[i].channel_id = channel_id; // Set the channel ID
     }
 
