@@ -36,14 +36,20 @@ g_free(css_path);
 g_free(theme_path);
 }
 
-void on_allocation_changed(GtkWidget *widget, GtkAllocation *allocation, gpointer user_data) {
-    int width = allocation->width;
+void on_allocation_changed(GtkWidget *widget, GParamSpec *pspec, gpointer user_data) {
     GtkWidget *userSidebar = GTK_WIDGET(user_data);
+    GtkWidget *paned = g_object_get_data(G_OBJECT(userSidebar), "paned");
 
-    if (width < 900) {
+    int width = gtk_widget_get_width(widget);
+    gboolean is_visible = gtk_widget_get_visible(userSidebar);
+
+    if (width < 900 && is_visible) {
         gtk_widget_set_visible(userSidebar, FALSE);
-    } else {
+        gtk_paned_set_position(GTK_PANED(paned), width); // étire chat_area
+    } 
+    else if (width >= 900 && !is_visible) {
         gtk_widget_set_visible(userSidebar, TRUE);
+        gtk_paned_set_position(GTK_PANED(paned), width - 260); // sidebar = 260px
     }
 }
 
@@ -89,21 +95,26 @@ void on_activate(GtkApplication *app, gpointer user_data) {
     gtk_widget_set_vexpand(chat_area, TRUE);
 
     // Sidebar with users
-    userSidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_name(userSidebar, "userSidebar");
-    gtk_widget_set_hexpand(userSidebar, FALSE);
-    gtk_widget_set_vexpand(userSidebar, TRUE);
+    GtkWidget *userSidebarContent = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_name(userSidebarContent, "userSidebarContent");
 
     // Add users
     GtkWidget *user1 = gtk_label_new("👤 User1");
     GtkWidget *user2 = gtk_label_new("👤 User2");
-    gtk_box_append(GTK_BOX(userSidebar), user1);
-    gtk_box_append(GTK_BOX(userSidebar), user2);
+    gtk_box_append(GTK_BOX(userSidebarContent), user1);
+    gtk_box_append(GTK_BOX(userSidebarContent), user2);
+
+    // Encapsulate in a scrolledwindow
+    userSidebar = gtk_scrolled_window_new();
+    gtk_widget_set_name(userSidebar, "userSidebar");
+    gtk_widget_set_size_request(userSidebar, 100, -1);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(userSidebar), userSidebarContent);
 
     // Paned between chat and users
     paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_paned_set_start_child(GTK_PANED(paned), chat_area);
     gtk_paned_set_end_child(GTK_PANED(paned), userSidebar);
+    g_object_set_data(G_OBJECT(userSidebar), "paned", paned);
 
     // Add everything into main_box
     gtk_box_append(GTK_BOX(main_box), channelSidebar); // Left sidebar
@@ -112,8 +123,8 @@ void on_activate(GtkApplication *app, gpointer user_data) {
     // init separation position to force chat area to take the biggest place
     gtk_paned_set_position(GTK_PANED(paned), 1020);
 
-    // Connect window size change to auto-hide userSidebar
-    g_signal_connect(window, "notify::allocation", G_CALLBACK(on_allocation_changed), userSidebar);
+    // Connect paned width for auto-hide userSidebar
+    g_signal_connect(paned, "notify::width", G_CALLBACK(on_allocation_changed), userSidebar);
 
     // Add the grid to the window
     gtk_window_present(GTK_WINDOW(window));
