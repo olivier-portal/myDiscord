@@ -36,33 +36,51 @@ g_free(css_path);
 g_free(theme_path);
 }
 
+void on_allocation_changed(GtkWidget *widget, GtkAllocation *allocation, gpointer user_data) {
+    int width = allocation->width;
+    GtkWidget *userSidebar = GTK_WIDGET(user_data);
+
+    if (width < 900) {
+        gtk_widget_set_visible(userSidebar, FALSE);
+    } else {
+        gtk_widget_set_visible(userSidebar, TRUE);
+    }
+}
+
 void on_activate(GtkApplication *app, gpointer user_data) {
     apply_custom_theme();
 
     GtkWidget *window;
-    GtkWidget *grid;
-    GtkWidget *sidebar;
-    GtkWidget *label1;
-    GtkWidget *label2;
+    GtkWidget *main_box;
+    GtkWidget *channelSidebar;
     GtkWidget *chat_area;
+    GtkWidget *userSidebar;
+    GtkWidget *paned;
 
     // Create main window
     window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "myDiscord");
     gtk_window_set_default_size(GTK_WINDOW(window), 1280, 800);
 
-    // Create grid container
-    grid = gtk_grid_new();
+    // header
+    GtkWidget *header = gtk_header_bar_new();
+    gtk_widget_set_name(header, "main-header");
+    gtk_window_set_titlebar(GTK_WINDOW(window), header);
+
+    // Create main horizontal box
+    main_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_window_set_child(GTK_WINDOW(window), main_box);
 
     // Sidebar with channels
-    sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_name(sidebar, "sidebar");
-    gtk_widget_set_hexpand(sidebar, FALSE);
-    gtk_widget_set_vexpand(sidebar, TRUE);    
-    label1 = gtk_label_new("📺 #general");
-    label2 = gtk_label_new("🎮 #gaming");
-    gtk_box_append(GTK_BOX(sidebar), label1);
-    gtk_box_append(GTK_BOX(sidebar), label2);
+    channelSidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_name(channelSidebar, "channelSidebar");
+    gtk_widget_set_size_request(channelSidebar, 100, -1); // min width
+    
+    // Add channels
+    GtkWidget *label1 = gtk_label_new("📺 #general");
+    GtkWidget *label2 = gtk_label_new("🎮 #gaming");
+    gtk_box_append(GTK_BOX(channelSidebar), label1);
+    gtk_box_append(GTK_BOX(channelSidebar), label2);
 
     // Main chat area
     chat_area = gtk_text_view_new();
@@ -70,16 +88,33 @@ void on_activate(GtkApplication *app, gpointer user_data) {
     gtk_widget_set_hexpand(chat_area, TRUE);
     gtk_widget_set_vexpand(chat_area, TRUE);
 
-    // header
-    GtkWidget *header = gtk_header_bar_new();
-    gtk_widget_set_name(header, "main-header");
-    gtk_window_set_titlebar(GTK_WINDOW(window), header);
+    // Sidebar with users
+    userSidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_name(userSidebar, "userSidebar");
+    gtk_widget_set_hexpand(userSidebar, FALSE);
+    gtk_widget_set_vexpand(userSidebar, TRUE);
 
-    // Attach widgets to the grid
-    gtk_grid_attach(GTK_GRID(grid), sidebar, 0, 0, 1, 1);   // Left column
-    gtk_grid_attach(GTK_GRID(grid), chat_area, 1, 0, 1, 1); // Right column
+    // Add users
+    GtkWidget *user1 = gtk_label_new("👤 User1");
+    GtkWidget *user2 = gtk_label_new("👤 User2");
+    gtk_box_append(GTK_BOX(userSidebar), user1);
+    gtk_box_append(GTK_BOX(userSidebar), user2);
+
+    // Paned between chat and users
+    paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+    gtk_paned_set_start_child(GTK_PANED(paned), chat_area);
+    gtk_paned_set_end_child(GTK_PANED(paned), userSidebar);
+
+    // Add everything into main_box
+    gtk_box_append(GTK_BOX(main_box), channelSidebar); // Left sidebar
+    gtk_box_append(GTK_BOX(main_box), paned);           // Center + Right sidebar
+
+    // init separation position to force chat area to take the biggest place
+    gtk_paned_set_position(GTK_PANED(paned), 1020);
+
+    // Connect window size change to auto-hide userSidebar
+    g_signal_connect(window, "notify::allocation", G_CALLBACK(on_allocation_changed), userSidebar);
 
     // Add the grid to the window
-    gtk_window_set_child(GTK_WINDOW(window), grid);
     gtk_window_present(GTK_WINDOW(window));
 }
