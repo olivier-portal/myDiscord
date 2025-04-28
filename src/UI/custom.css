@@ -4,6 +4,10 @@ headerbar:active {
     all: unset;
 }
 
+button {
+    all: unset;
+}
+
 #main-header {
     background-color: #2b2b2b;
     color: #ffffff;
@@ -37,6 +41,42 @@ headerbar:active {
     color: #eee;
     border: 1px solid #444;
     padding: 10px;
+}
+
+#chatentry, #chatentrybox {
+    background-color: #1e1e1e;
+    color: #eee;
+    padding: 10px;
+}
+
+#chatbutton, 
+#chatbutton * {
+    outline: none;
+    border-image: none;
+    background-color: #1e1e1e;
+    color: #eee;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: none;
+}
+
+#chatbutton:hover {
+    outline: none;
+    border-image: none;
+    background-color: #2a2a2a;
+}
+
+#chatbutton:active {
+    outline: none;
+    border-image: none;
+    background-color: #3a3a3a;
+}
+
+#chatbutton:focus {
+    outline: none;
+    border-image: none;
+    box-shadow: none;
 }
 
 #userSidebar {
