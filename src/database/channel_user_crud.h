@@ -4,9 +4,12 @@
 #include <libpq-fe.h>
 
 // Add a user to a channel with a specific role
-int add_user_to_channel(PGconn* conn, int client_id, int channel_id, const char* role);
+int create_user_channel(PGconn *conn, int client_id, int channel_id, const char *role);
 
 // Remove a user from a channel
-int remove_user_from_channel(PGconn* conn, int client_id, int channel_id);
+int delete_user_channel(PGconn *conn, int client_id, int channel_id);
+
+// Update a user's role in a channel
+int update_user_channel(PGconn *conn, int client_id, int channel_id, const char *new_role);
 
 #endif // CHANNEL_USER_CRUD_H

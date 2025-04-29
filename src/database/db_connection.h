@@ -13,7 +13,7 @@ typedef struct {
 } DBConfig;
 
 // Load database configuration from a file
-int load_db_config(const char* filepath, DBConfig *config);
+int load_db_config(const char *filepath, DBConfig *config);
 
 // Connect to the database using a DBConfig structure
 PGconn *connect_to_database(const DBConfig *config);

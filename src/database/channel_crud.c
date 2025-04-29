@@ -40,7 +40,7 @@ int create_channel(PGconn* conn, const char* name, int is_private) {
     return 1;
 }
 
-int edit_channel(PGconn* conn, int channel_id, int user_id, const char* new_name, int is_private) {
+int update_channel(PGconn* conn, int channel_id, int user_id, const char* new_name, int is_private) {
     const char* query = 
         "UPDATE Channel SET name_channel = $1, is_private = $2 "
         "WHERE Id_channel = $3 AND EXISTS ("
@@ -64,7 +64,7 @@ int edit_channel(PGconn* conn, int channel_id, int user_id, const char* new_name
     return 1;
 }
 
-int select_user_channels(PGconn* conn, int user_id) {
+int read_user_channels(PGconn* conn, int user_id) {
     const char* query = 
         "SELECT c.Id_channel, c.name_channel, c.is_private, cu.role "
         "FROM Channel AS c "
