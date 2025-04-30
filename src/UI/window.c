@@ -74,7 +74,7 @@ void on_allocation_changed(GtkWidget *widget, GParamSpec *pspec, gpointer user_d
     }
 }
 
-void on_activate(GtkApplication *app, gpointer user_data) {
+void mydiscord_main_window(GtkApplication *app, gpointer user_data) {
     apply_custom_theme();
 
     GtkWidget *window;

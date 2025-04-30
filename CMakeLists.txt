@@ -32,6 +32,7 @@ add_executable(client
   src/client/client_socket.c
   src/config/config.c
   src/ui/window.c
+  src/ui/login_window.c
 )
 target_link_libraries(client ${GTK_LIBRARIES} ${PostgreSQL_LIBRARIES} ws2_32)
 
