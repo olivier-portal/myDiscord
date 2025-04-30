@@ -1,20 +1,10 @@
-#sidebar {
-    background-color: #2b2b2b;
-    border-right: 2px solid #555;
-    padding: 10px;
-    color: #eee;
-}
-
-#chatview {
-    background-color: #1e1e1e;
-    color: #eee;
-    border: 1px solid #444;
-    padding: 10px;
-}
-
 headerbar,
 headerbar:backdrop,
 headerbar:active {
+    all: unset;
+}
+
+button {
     all: unset;
 }
 
@@ -37,3 +27,71 @@ headerbar:active {
     background: transparent;
     border: none;
 }
+
+#channelSidebar {
+    background-color: #2b2b2b;
+    border-right: 2px solid #555;
+    padding: 10px;
+    color: #eee;
+    min-width: 100px;
+}
+
+#chatview {
+    background-color: #1e1e1e;
+    color: #eee;
+    border: 1px solid #444;
+    padding: 10px;
+}
+
+#chatentry, #chatentrybox {
+    background-color: #1e1e1e;
+    color: #eee;
+    padding: 10px;
+}
+
+#chatbutton, 
+#chatbutton * {
+    outline: none;
+    border-image: none;
+    background-color: #1e1e1e;
+    color: #eee;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: none;
+}
+
+#chatbutton:hover {
+    outline: none;
+    border-image: none;
+    background-color: #2a2a2a;
+}
+
+#chatbutton:active {
+    outline: none;
+    border-image: none;
+    background-color: #3a3a3a;
+}
+
+#chatbutton:focus {
+    outline: none;
+    border-image: none;
+    box-shadow: none;
+}
+
+#userSidebar {
+    background-color: #2b2b2b;
+    border-left: 2px solid #555;
+    padding: 10px;
+    color: #eee;
+}
+
+paned {
+    background-color: transparent;
+}
+
+separator {
+    background-color: #444;
+    min-width: 2px;
+}
+
