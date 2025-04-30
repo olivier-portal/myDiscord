@@ -2,12 +2,17 @@
 #include <glib.h> // pour GThread
 #include "client_socket.h"
 #include "../ui/window.h"
+#include "../ui/login_window.h"
 #include "../config/config.h"
 
 static gpointer client_thread_func(gpointer data) {
     start_client();
     return NULL;
 }
+
+static void on_activate(GtkApplication *app, gpointer user_data) {
+    login_window(app);
+};
 
 int main(int argc, char *argv[]) {
     char *conninfo = load_conninfo_from_file("../db_config.txt");
