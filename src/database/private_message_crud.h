@@ -8,6 +8,7 @@ typedef struct {
     int id;
     char content[500];
     char date[50];
+    char last_edit[50];
     int sender_id;
     int target_id;
 } PrivateMessage;

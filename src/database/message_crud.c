@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int write_message(PGconn* conn, const Message* message) {
+int create_message(PGconn* conn, const Message* message) {
     const char* query = "INSERT INTO Message (contenu, date_message, Id_channel, Id_sender) VALUES ($1, NOW(), $2, $3)";
     char channel_id_str[12], sender_id_str[12];
     snprintf(channel_id_str, sizeof(channel_id_str), "%d", message->channel_id);
@@ -22,7 +22,7 @@ int write_message(PGconn* conn, const Message* message) {
     return 1;
 }
 
-int edit_message(PGconn* conn, int message_id, int user_id, const char* new_content) {
+int update_message(PGconn* conn, int message_id, int user_id, const char* new_content) {
     const char* query = "UPDATE Message SET content = $1, last_edit = NOW() WHERE Id_message = $2 AND Id_sender = $3";
     char message_id_str[12], user_id_str[12];
     snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
@@ -43,7 +43,7 @@ int edit_message(PGconn* conn, int message_id, int user_id, const char* new_cont
 
 Message* fetch_channel_messages(PGconn* conn, int channel_id, int* message_count) {
     const char* query =
-        "SELECT m.Id_message, c.name_channel, COALESCE(u.pseudo, 'Anonymous user'), m.date_message, m.content "
+        "SELECT m.Id_message, c.name_channel, COALESCE(u.pseudo, 'Anonymous user'), m.Id_sender, m.date_message, m.content, m.last_edit "
         "FROM message AS m "
         "JOIN channel AS c ON c.Id_channel = m.Id_channel "
         "LEFT JOIN client AS u ON u.Id_client = m.Id_sender "
@@ -76,10 +76,13 @@ Message* fetch_channel_messages(PGconn* conn, int channel_id, int* message_count
 
     // Populate the array of 'messages' with data from the query result
     for (int i = 0; i < rows; i++) {
-        strncpy(messages[i].content, PQgetvalue(res, i, 3), sizeof(messages[i].content) - 1);
-        strncpy(messages[i].date, PQgetvalue(res, i, 2), sizeof(messages[i].date) - 1);
-        messages[i].sender_id = -1; // Default value for sender_id (not fetched in this query)
+        messages[i].id = atoi(PQgetvalue(res, i, 0));
+        strncpy(messages[i].content, PQgetvalue(res, i, 5), sizeof(messages[i].content) - 1);
+        strncpy(messages[i].date, PQgetvalue(res, i, 4), sizeof(messages[i].date) - 1);
+        strncpy(messages[i].last_edit, PQgetvalue(res, i, 6), sizeof(messages[i].last_edit) - 1);
+        messages[i].sender_id = atoi(PQgetvalue(res, i, 3)); // Set the sender ID
         messages[i].channel_id = channel_id; // Set the channel ID
+        strncpy(messages[i].sender_pseudo, PQgetvalue(res, i, 2), sizeof(messages[i].sender_pseudo) - 1);
     }
 
     PQclear(res);

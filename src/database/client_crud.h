@@ -5,7 +5,8 @@
 
 // Struct to represent a client
 typedef struct {
-    char name[50];
+    int id_client;
+    char first_name[50];
     char last_name[50];
     char pseudo[50];
     char password[150];

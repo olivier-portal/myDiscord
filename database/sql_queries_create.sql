@@ -7,7 +7,7 @@ ALTER TABLE Message ADD CONSTRAINT fk_message_sender FOREIGN KEY (Id_sender) REF
 
 CREATE TABLE IF NOT EXISTS Client(
    Id_client SERIAL,
-   name VARCHAR(50) NOT NULL,
+   first_name VARCHAR(50) NOT NULL,
    last_name VARCHAR(50) NOT NULL,
    pseudo VARCHAR(50) NOT NULL,
    password VARCHAR(150) NOT NULL,
@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS Private_message(
    Id_private_message SERIAL,
    contenu VARCHAR(500),
    date_message TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   last_edit TIMESTAMP DEFAULT NULL,
    Id_sender INTEGER NOT NULL,
    Id_target INTEGER NOT NULL,
    PRIMARY KEY(Id_private_message),

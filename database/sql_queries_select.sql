@@ -2,6 +2,10 @@ SELECT table_name
 FROM information_schema.tables 
 WHERE table_schema = 'public';
 
+select * from client;
+SELECT * FROM message;
+SELECT * FROM private_message;
+
 SELECT n.nspname AS schema_name,
        t.typname AS type_name,
        t.typcategory AS type_category
