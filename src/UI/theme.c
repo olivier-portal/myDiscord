@@ -1,9 +1,9 @@
 #include <gtk/gtk.h>
 #include "theme.h"
 
-void apply_custom_theme() {
+void apply_custom_theme(GtkWidget *widget) {
     GtkCssProvider *provider = gtk_css_provider_new();
-    GdkDisplay *display = gdk_display_get_default();
+    GdkDisplay *display = gtk_widget_get_display(widget);
 
 #ifdef _WIN32
     gchar *theme_path = g_strdup("C:\\Users\\porta\\.themes\\MyBreeze-Dark-GTK\\gtk-4.0\\gtk.css");
@@ -19,7 +19,7 @@ g_object_unref(theme_file);
 
 // Custom css
 GtkCssProvider *custom = gtk_css_provider_new();
-gchar *css_path = g_build_filename("..", "src", "ui", "custom.css", NULL);
+gchar *css_path = g_build_filename(g_get_current_dir(), "custom.css", NULL);
 GFile *custom_file = g_file_new_for_path(css_path);
 
 gtk_css_provider_load_from_file(custom, custom_file);

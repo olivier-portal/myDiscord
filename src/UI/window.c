@@ -45,8 +45,6 @@ void on_allocation_changed(GtkWidget *widget, GParamSpec *pspec, gpointer user_d
 }
 
 void mydiscord_main_window(GtkApplication *app, gpointer user_data) {
-    apply_custom_theme();
-
     GtkWidget *window;
     GtkWidget *main_box;
     GtkWidget *channelSidebar;
