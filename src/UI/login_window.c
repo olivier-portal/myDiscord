@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
 #include "window.h"
+#include "login_window.h"
+#include "theme.h"
 
 // Callback pour ouvrir la fenêtre principale après login
 static void on_login_clicked(GtkButton *button, gpointer app) {
