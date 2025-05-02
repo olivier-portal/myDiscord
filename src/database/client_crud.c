@@ -5,7 +5,7 @@
 
 int create_client_account(PGconn* conn, const Client* client) {
     const char* query = "INSERT INTO Client (first_name, last_name, pseudo, password, email) VALUES ($1, $2, $3, $4, $5)";
-    PGresult* res = PQexecParams(conn, query, 5, NULL, (const char*[]){client->name, client->last_name, client->pseudo, client->password, client->email}, NULL, NULL, 0);
+    PGresult* res = PQexecParams(conn, query, 5, NULL, (const char*[]){client->first_name, client->last_name, client->pseudo, client->password, client->email}, NULL, NULL, 0);
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "❌ Erreur lors de la création du compte client: %s\n", PQerrorMessage(conn));
@@ -165,13 +165,3 @@ char* read_client_pseudo_by_id(PGconn* conn, int client_id) {
     printf("✅ Pseudo du client récupéré avec succès: %s\n", pseudo);
     return pseudo;
 }
-
-/* Usage (for each message to display):
-char* sender_pseudo = read_client_pseudo_by_id(conn, 1);
-if (sender_pseudo) {
-    printf("Pseudo: %s\n", pseudo);
-    free(pseudo); // Free the allocated memory
-} else {
-    printf("Failed to retrieve sender pseudo.\n");
-}
-*/

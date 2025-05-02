@@ -34,7 +34,17 @@ int update_client_password(PGconn *conn, int client_id, const char *password);
 // Delete a client account
 int delete_client(PGconn *conn, int client_id);
 
-// Retrieve a client's pseudo by their ID
+/* 
+* Retrieve a client's pseudo by their ID
+* Usage:
+* char* sender_pseudo = read_client_pseudo_by_id(conn, 1);
+* if (sender_pseudo) {
+*     printf("Pseudo: %s\n", pseudo);
+*     free(pseudo); // Free the allocated memory
+* } else {
+*     printf("Failed to retrieve sender pseudo.\n");
+* }
+*/
 char *read_client_pseudo_by_id(PGconn *conn, int client_id);
 
 #endif // CLIENT_CRUD_H
