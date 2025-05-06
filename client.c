@@ -23,19 +23,23 @@ int main() {
     DWORD exit_code; // Code de sortie du thread d'envoi
     BOOL still_active; // Indique si le thread d'envoi est toujours actif
 
+    printf("[DEBUG] initialisation du client...\n");
+
     // Initialisation de Wonsock
     if(WSAStartup(MAKEWORD(2, 2), &wsaData)!=0) {
-        printf("Erreur d'initialisation de Winsock.\n");
+        printf("[ERREUR] Erreur d'initialisation de Winsock.\n");
         return 1;
     }
+    printf("[DEBUG] Winsock initialisé.\n");
 
     // Création du socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(sockfd == INVALID_SOCKET) {
-        printf("Erreur de création du socket.\n");
+        printf("[ERREUR] Erreur de création du socket.\n");
         WSACleanup();
         return 1;
     }
+    printf("[DEBUG] socket créé.\n");
 
     // Réinitialisation des buffers et de la Structure d'adresse
     memset(&servaddr, 0, sizeof(servaddr));
@@ -46,14 +50,17 @@ int main() {
     servaddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Adresse locale
 
     // Connexion au serveur
+    printf("[DEBUG] tentative de connexion au seveur...\n");
     if(connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == SOCKET_ERROR) {
-        printf("Erreur de connexion au serveur.\n");
+        printf("[ERREUR] Erreur de connexion au serveur.\n");
         closesocket(sockfd);
         WSACleanup();
         return 1;
     }
+    printf("[DEBUG] connexion au serveur réussie.\n");
 
     // Création d'un thread pour envoyer des messages
+    printf("[DEBUG] création du thread d'envoi  de message...\n");
     HANDLE send_thread = CreateThread(NULL, 0, send_message, (LPVOID)sockfd, 0, NULL);
     // attribut de CreateThread():
     // NULL : pas d'attribut de sécurité (par défault)
@@ -65,29 +72,31 @@ int main() {
 
     // vérifie si le thread a été créé avec succés
     if(send_thread == NULL) {
-        printf("Erreur de création du thread d'envoi.\n");
+        printf("[ERREUR] Erreur de création du thread d'envoi.\n");
         closesocket(sockfd);
         WSACleanup();
         return 1;
     }
+    printf("[DEBUG] thread d'envoi créé avec succès.\n");
 
     // Boucle de réception de messages
     while(1) {
+        printf("[DEBUG] début de la boucle de réception de messages...\n");
         // Réception de la réponse du serveur
         memset(recvline, 0, sizeof(recvline));
         int recv_len = recv(sockfd, recvline, sizeof(recvline)-1, 0);
         if(recv_len <= 0) {
-            printf("Erreur de réception du message.\n");
+            printf("[ERREUR] Erreur de réception du message.\n");
             break;
         }
 
         recvline[sizeof(recvline)-1] = '\0';
-        printf("Message du serveur : %s", recvline); 
+        printf("\n [DEBUG] Message du serveur : %s", recvline); 
 
         // vérification de l'état du thread d'envoi
         still_active = GetExitCodeThread(send_thread, &exit_code);
         if(still_active && exit_code != STILL_ACTIVE) {
-            printf("Le thread s'est terminé avec le code de sortie : %lu\n", exit_code);
+            printf("[DEBUG] Le thread s'est terminé avec le code de sortie : %lu\n", exit_code);
             break;
         }
     }
@@ -98,12 +107,16 @@ int main() {
     // a terminé son exécution. Si le thread d'envoi est toujours 
     // actif (par exemple, si l'utilisateur n'a pas encore entré "exit"), le thread principal restera bloqué à cet appel.
     WaitForSingleObject(send_thread, INFINITE);
+    printf("[DEBUG] thread d'envoi terminé.\n");
     // fermeture du thread d'envoi
     CloseHandle(send_thread);
+    printf("[DEBUG] thread d'envoi fermé.\n");
     
     // Fermeture du socket
     closesocket(sockfd);
+    printf("[DEBUG] socket fermé.\n");
     WSACleanup();
+    printf("[DEBUG] Winsock nettoyé et fin du programme.\n");
 
     return 0;
 }
@@ -113,23 +126,27 @@ DWORD WINAPI send_message(LPVOID socket_desc) {
     SOCKET sockfd = (SOCKET)socket_desc; // Cast du socket_desc en SOCKET
     char sendline[500];
 
+    printf("[DEBUG] démarrage de la fonction d'envoi de message...\n");
     while(1) {
+        printf("[DEBUG] attente de l'entrée utilisateur...\n");
         printf("\nVotre message (ou tapez 'exit' pour quitter): ");
         fgets(sendline, sizeof(sendline), stdin);
         sendline[strcspn(sendline, "\n")] = 0;
 
         if(send(sockfd, sendline, strlen(sendline), 0) == SOCKET_ERROR) {
-            printf("Erreur d'envoi du message.\n");
+            printf("[ERREUR] Erreur d'envoi du message.\n");
             break;
         }
+        printf("[DEBUG] message envoyé.\n");
 
         if(strcmp(sendline, "exit") == 0) {
-            printf("Fermeture de la connexion...\n");
+            printf("[DEBUG] Fermeture de la connexion...\n");
             break;
         }
 
         memset(sendline, 0, sizeof(sendline));
     }
 
+    printf("[DEBUG] fin de la fonction d'envoi de message.\n");
     return 0;
 }
