@@ -81,7 +81,7 @@ int main() {
 
     // Boucle de réception de messages
     while(1) {
-        printf("[DEBUG] début de la boucle de réception de messages...\n");
+        printf("\n[DEBUG] début de la boucle de réception de messages...\n");
         // Réception de la réponse du serveur
         memset(recvline, 0, sizeof(recvline));
         int recv_len = recv(sockfd, recvline, sizeof(recvline)-1, 0);
@@ -91,7 +91,7 @@ int main() {
         }
 
         recvline[sizeof(recvline)-1] = '\0';
-        printf("\n [DEBUG] Message du serveur : %s", recvline); 
+        printf("\n[DEBUG] Message du serveur : %s", recvline); 
 
         // vérification de l'état du thread d'envoi
         still_active = GetExitCodeThread(send_thread, &exit_code);
