@@ -462,7 +462,14 @@ DWORD WINAPI accept_connections(LPVOID param) {
         // initialiser les champs de ClientData
         client_conn->socket = comm_fd;
         client_conn->state = state; 
-        client_conn->thread = NULL;
+        client_conn->thread = NULL;   
+
+        printf("[DEBUG] Appel de find_free_index avec les paramètres suivants :\n");
+        printf(" - state : %p\n", (void *)state);
+        printf(" - clients : %p\n", (void *)state->clients);
+        printf(" - max_clients : %d\n", MAX_CLIENTS);
+
+        int free_index = find_free_index(state, state->clients, MAX_CLIENTS); // Trouve un index libre dans le tableau de clients
 
         wait_result = WaitForSingleObject(state->clients_mutex, INFINITE);
         if (wait_result != WAIT_OBJECT_0) {
@@ -473,8 +480,6 @@ DWORD WINAPI accept_connections(LPVOID param) {
         }
         printf("[DEBUG] Mutex clients_mutex acquis pour l'ajout du client.\n");
 
-
-        int free_index = find_free_index(state->clients_mutex, state->clients, MAX_CLIENTS); // Trouve un index libre dans le tableau de clients
         if(free_index != -1) {
             client_conn->client_id = free_index; // Associe l'ID du client à l'index libre
             state->clients[free_index] = client_conn;
@@ -624,9 +629,24 @@ DWORD WINAPI send_message(LPVOID param) {
 // Fonction pour trouver un index libre dans le tableau de clients
 int find_free_index(ServerState *state, ClientData *clients[], int max_clients) {
     printf("[DEBUG] Démarrage de la fonction find_free_index.\n");
-    
-    if (state == NULL || clients == NULL) {
-        printf("[ERREUR] Paramètres invalides : état ou clients NULL.\n");
+
+    printf(" - state : %p\n", (void *)state);
+    printf(" - clients : %p\n", (void *)state->clients);
+    printf(" - max_clients : %d\n", MAX_CLIENTS);
+
+    // Vérification des paramètres
+    if (state == NULL) {
+        printf("[ERREUR] Paramètre 'state' est NULL.\n");
+        return -1;
+    }
+    if (clients == NULL) {
+        printf("[ERREUR] Paramètre 'clients' est NULL.\n");
+        return -1;
+    }
+
+    // Vérification du mutex
+    if (state->clients_mutex == NULL) {
+        printf("[ERREUR] Mutex clients_mutex est NULL.\n");
         return -1;
     }
 
