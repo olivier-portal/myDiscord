@@ -46,11 +46,10 @@ static void on_create_account_clicked(GtkButton *button, gpointer user_data) {
 // Fonction principale pour la fenêtre de login
 void login_window(GtkApplication *app) {
     GtkWidget *window = gtk_application_window_new(app);
+    apply_custom_theme();
     gtk_window_set_title(GTK_WINDOW(window), "Connexion");
     gtk_window_set_default_size(GTK_WINDOW(window), 400, 200);
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
-
-    apply_custom_theme(window); // applique les CSS
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_set_margin_top(box, 30);

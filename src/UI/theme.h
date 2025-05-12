@@ -3,6 +3,6 @@
 
 #include <gtk/gtk.h>
 
-void apply_custom_theme(GtkWidget *widget);
+void apply_custom_theme();
 
 #endif
