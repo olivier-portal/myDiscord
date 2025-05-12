@@ -26,6 +26,9 @@ int main(int argc, char *argv[]) {
 
     // Launch gtk
     GtkApplication *app = gtk_application_new("com.jinx.myDiscord", G_APPLICATION_DEFAULT_FLAGS);
+
+    apply_custom_theme();
+
     g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
