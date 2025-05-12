@@ -34,7 +34,7 @@ typedef struct ClientData {
     ServerState *state;
 }ClientData;
 
-
+int release_client_resources(ServerState *state, ClientData *client_conn);
 int count_connected_clients(ServerState *state, ClientData *clients[], int max_clients);
 int find_free_index(ServerState *state, ClientData *clients[], int max_clients);
 DWORD WINAPI comm_client(LPVOID param); 
@@ -186,7 +186,8 @@ int main() {
     CloseHandle(accept_thread);
     printf("[DEBUG] Thread d'acceptation terminé.\n");
 
-    // attendre que les threads se terminent
+    // attendre que les threads clients se terminent
+    printf("[DEBUG] Attente de la terminaison des threads clients...\n");
     int connected_clients = count_connected_clients(state.clients_mutex, state.clients, MAX_CLIENTS); 
     printf("[DEBUG] Nombre de clients connectés : %d\n", connected_clients);
     if(connected_clients > 0) { 
@@ -235,6 +236,7 @@ DWORD WINAPI comm_client(LPVOID param) {
     SOCKET comm_fd = client_conn->socket;
     ServerState *state = client_conn->state;
     int bytesReceived;
+    DWORD wait_result;
 
     printf("[DEBUG] Démarrage de la fonction comm_client pour le client #%d.\n", client_conn->client_id);
 
@@ -242,75 +244,44 @@ DWORD WINAPI comm_client(LPVOID param) {
     const char *welcome_message = "Bienvenue sur le serveur MyDiscord !\n";
     if (send(comm_fd, welcome_message, strlen(welcome_message), 0) == SOCKET_ERROR) {
         printf("[ERREUR] Impossible d'envoyer le message de bienvenue au client #%d : %d\n", client_conn->client_id, WSAGetLastError());
-        closesocket(comm_fd);
-        free(client_conn);
-        return 1;
+        goto cleanup; // Aller à la section de nettoyage en cas d'erreur
     }
     printf("[DEBUG] Message de bienvenue envoyé au client #%d.\n", client_conn->client_id);
 
     // Boucle pour gérer la communication avec le client
     while (1) {
-        // WaitForSingleObject(state->buffer_mutex, INFINITE);
-        // printf("[DEBUG] #%d mutex acquis pour la réception du message.\n", client_conn->client_id);
-
-        // // réinitialisr le buffer avant de recevoir un message
-        // memset(state->buffer, 0, sizeof(state->buffer));
-        // printf("[DEBUG] #%d mutex acquis, réinitialisation du buffer\n", client_conn->client_id);
-
+        // Vérifier si le drapeau d'arrêt est activé
+        wait_result = WaitForSingleObject(state->stop_flag_mutex, INFINITE);
+        if (wait_result == WAIT_OBJECT_0) {
+            if (state->stop_flag) {
+                printf("[DEBUG] Signal d'arrêt reçu pour le client #%d.\n", client_conn->client_id);
+                if (!ReleaseMutex(state->stop_flag_mutex)) {
+                    printf("[ERREUR] Échec de ReleaseMutex pour stop_flag_mutex : %d\n", GetLastError());
+                }
+                break; // Quitter la boucle
+            }
+            if (!ReleaseMutex(state->stop_flag_mutex)) {
+                printf("[ERREUR] Échec de ReleaseMutex pour stop_flag_mutex : %d\n", GetLastError());
+            }
+        } else {
+            printf("[ERREUR] Échec de WaitForSingleObject pour stop_flag_mutex : %d\n", GetLastError());
+            break;
+        }
+        
         // réception d'un message du client
         bytesReceived = recv(comm_fd, state->buffer, sizeof(state->buffer) - 1, 0); 
         if (bytesReceived == 0) {
             // Le client a fermé la connexion ou une erreur s'est produite
             printf("[INFO] Le client #%d a fermé la connexion.\n", client_conn->client_id);
-            closesocket(comm_fd);
-
-            // Libération des ressources du client
-            DWORD wait_result = WaitForSingleObject(state->clients_mutex, INFINITE);
-            if (wait_result != WAIT_OBJECT_0) {
-                printf("[ERREUR] Échec de WaitForSingleObject pour clients_mutex : %d\n", GetLastError());
-                break;
-            }
-            printf("[DEBUG] Mutex clients_mutex acquis pour la libération du client #%d.\n", client_conn->client_id);
-
-            state->clients[client_conn->client_id] = NULL;
-
-            if (!ReleaseMutex(state->clients_mutex)) {
-                printf("[ERREUR] Échec de ReleaseMutex pour clients_mutex : %d\n", GetLastError());
-            } else {
-                printf("[DEBUG] Mutex clients_mutex libéré pour la libération du client #%d.\n", client_conn->client_id);
-            }
-            printf("[DEBUG] #%d mutex libéré pour la libération du client.\n", client_conn->client_id);
-
-            free(client_conn);
             break; 
         } else if (bytesReceived < 0) {
             // Une erreur s'est produite lors de la réception
             printf("[ERREUR] Erreur de réception du client #%d : %d\n", client_conn->client_id, WSAGetLastError());
-            closesocket(comm_fd);
-
-            // Libération des ressources du client
-            printf("[DEBUG] Tentative d'acquisition du mutex clients_mutex pour la libération du client.\n");
-            DWORD wait_result = WaitForSingleObject(state->clients_mutex, INFINITE);
-            if (wait_result != WAIT_OBJECT_0) {
-                printf("[ERREUR] Échec de WaitForSingleObject pour clients_mutex : %d\n", GetLastError());
-                break;
-            }
-            printf("[DEBUG] Mutex clients_mutex acquis pour la libération du client #%d.\n", client_conn->client_id);
-
-            state->clients[client_conn->client_id] = NULL;
-
-            if (!ReleaseMutex(state->clients_mutex)) {
-                printf("[ERREUR] Échec de ReleaseMutex pour clients_mutex : %d\n", GetLastError());
-            } else {
-                printf("[DEBUG] Mutex clients_mutex libéré pour la libération du client #%d.\n", client_conn->client_id);
-            }
-
-            free(client_conn);
             break;
         }
 
         // Si des données sont reçues, acquérir le mutex pour protéger le buffer
-        DWORD wait_result = WaitForSingleObject(state->buffer_mutex, INFINITE);
+        wait_result = WaitForSingleObject(state->buffer_mutex, INFINITE);
         if (wait_result != WAIT_OBJECT_0) {
             printf("[ERREUR] Échec de WaitForSingleObject pour buffer_mutex : %d\n", GetLastError());
             break;
@@ -325,38 +296,16 @@ DWORD WINAPI comm_client(LPVOID param) {
         if (strcmp(state->buffer, "exit") == 0) {
             printf("[INFO] Le client #%d a quitté la conversation.\n", client_conn->client_id);
 
+            // Libérer le mutex buffer_mutex avant de quitter
             if (!ReleaseMutex(state->buffer_mutex)) {
                 printf("[ERREUR] Échec de ReleaseMutex pour buffer_mutex : %d\n", GetLastError());
             } else {
                 printf("[DEBUG] Mutex buffer_mutex libéré pour le client #%d.\n", client_conn->client_id);
             }
-
-            closesocket(comm_fd);
-
-            wait_result = WaitForSingleObject(state->clients_mutex, INFINITE);
-            if (wait_result != WAIT_OBJECT_0) {
-                printf("[ERREUR] Échec de WaitForSingleObject pour clients_mutex : %d\n", GetLastError());
-                break;
-            }
-            printf("[DEBUG] Mutex clients_mutex acquis pour la libération du client #%d.\n", client_conn->client_id);
-
-            if (state->clients[client_conn->client_id] != NULL) {
-                state->clients[client_conn->client_id] = NULL;
-                free(client_conn);
-                printf("[DEBUG] Ressources du client #%d libérées.\n", client_conn->client_id);
-            } else {
-                printf("[DEBUG] Le client #%d a déjà été libéré.\n", client_conn->client_id);
-            }
-
-            if (!ReleaseMutex(state->clients_mutex)) {
-                printf("[ERREUR] Échec de ReleaseMutex pour clients_mutex : %d\n", GetLastError());
-            } else {
-                printf("[DEBUG] Mutex clients_mutex libéré pour la libération du client #%d.\n", client_conn->client_id);
-            }
-
             break;
         }
 
+        // Si le message n'est pas "exit", envoyer le message à tous les clients connectés
         if (!ReleaseMutex(state->buffer_mutex)) {
             printf("[ERREUR] Échec de ReleaseMutex pour buffer_mutex : %d\n", GetLastError());
             break;
@@ -371,29 +320,14 @@ DWORD WINAPI comm_client(LPVOID param) {
         send_message((LPVOID)params);
     }
 
-    printf("[DEBUG] #%d fin de la connexion et de la fonction comm_client\n", client_conn->client_id);
+cleanup:
+    printf("[DEBUG] Fin de la connexion et de la fonction comm_client pour le client #%d\n", client_conn->client_id);
 
-    closesocket(comm_fd);
+    // Libérer les ressources du client
+    if (release_client_resources(state, client_conn) != 0) {
+        printf("[ERREUR] Échec de la libération des ressources pour le client #%d.\n", client_conn->client_id);
+    }
 
-    // DWORD wait_result = WaitForSingleObject(state->clients_mutex, INFINITE);
-    // if (wait_result != WAIT_OBJECT_0) {
-    //     printf("[ERREUR] Échec de WaitForSingleObject pour clients_mutex : %d\n", GetLastError());
-    // } else {
-    //     printf("[DEBUG] Mutex clients_mutex acquis pour la libération du client #%d.\n", client_conn->client_id);
-
-    //     // Supprimer le client du tableau
-    //     state->clients[client_conn->client_id] = NULL;
-
-    //     // Libérer le mutex
-    //     if (!ReleaseMutex(state->clients_mutex)) {
-    //         printf("[ERREUR] Échec de ReleaseMutex pour clients_mutex : %d\n", GetLastError());
-    //     } else {
-    //         printf("[DEBUG] Mutex clients_mutex libéré pour la libération du client #%d.\n", client_conn->client_id);
-    //     }
-    // }
-
-    // free(client_conn);
-    // printf("[DEBUG] Ressources du client #%d libérées.\n", client_conn->client_id);
     return 0;
 }
 
@@ -420,17 +354,17 @@ DWORD WINAPI accept_connections(LPVOID param) {
             printf("[DEBEUG] Drapeau d'arrêt activé, arrêt de la boucle d'accpetation.\n");
             if (!ReleaseMutex(state->stop_flag_mutex)) {
                 printf("[ERREUR] Échec de ReleaseMutex pour stop_flag_mutex : %d\n", GetLastError());
-            } else {
-                printf("[DEBUG] Mutex stop_flag_mutex libéré avec succès.\n");
             }
+            printf("[DEBUG] Mutex stop_flag_mutex libéré avec succès.\n");
             break;
         }
         
         if (!ReleaseMutex(state->stop_flag_mutex)) {
             printf("[ERREUR] Échec de ReleaseMutex pour stop_flag_mutex : %d\n", GetLastError());
-        } else {
-            printf("[DEBUG] Mutex stop_flag_mutex libéré avec succès.\n");
+            break;
         }
+        printf("[DEBUG] Mutex stop_flag_mutex libéré avec succès.\n");
+        
 
         // Vérification du nombre de clients connectés avant d'accepter une connexion
         printf("[DEBUG] Vérification du nombre de clients connectés avant accept.\n");
@@ -497,39 +431,25 @@ DWORD WINAPI accept_connections(LPVOID param) {
 
         if (!ReleaseMutex(state->clients_mutex)) {
             printf("[ERREUR] Échec de ReleaseMutex pour clients_mutex : %d\n", GetLastError());
-        } else {
-            printf("[DEBUG] Mutex clients_mutex libéré pour l'ajout du client.\n");
+            if(release_client_resources(state, client_conn) != 0) {
+                printf("[ERREUR] Échec de la libération des ressources pour le client #%d.\n", client_conn->client_id);
+            }
+            continue;
         }
+        printf("[DEBUG] Mutex clients_mutex libéré pour l'ajout du client.\n");
+        
 
         // créer un thread pour gérer la communication avec le client
-        printf("[DEBEUG] création d'un thread pour gérer la communication avec le client #%d.\n", client_conn->client_id);
+        printf("[DEBEUG] Création d'un thread pour gérer la communication avec le client #%d.\n", client_conn->client_id);
         HANDLE new_thread = CreateThread(NULL, 0, comm_client, (LPVOID)client_conn, 0, NULL);
         if(new_thread != NULL) {
             client_conn->thread = new_thread; 
             printf("[DEBEUG] thread créé avec succès pour le client #%d.\n", client_conn->client_id);
         } else {
             printf("[ERREUR] Erreur de création du thread client : %d\n", GetLastError());
-            wait_result = WaitForSingleObject(state->clients_mutex, INFINITE);
-            if (wait_result != WAIT_OBJECT_0) {
-                printf("[ERREUR] Échec de WaitForSingleObject pour clients_mutex : %d\n", GetLastError());
-                free(client_conn);
-                closesocket(comm_fd);
-                continue;
+            if(release_client_resources(state, client_conn) != 0) {
+                printf("[ERREUR] Échec de la libération des ressources pour le client #%d.\n", client_conn->client_id);
             }
-            printf("[DEBUG] Mutex clients_mutex acquis pour la libération du client #%d.\n", client_conn->client_id);
-
-            state->clients[client_conn->client_id] = NULL; 
-
-            if (!ReleaseMutex(state->clients_mutex)) {
-                printf("[ERREUR] Échec de ReleaseMutex pour clients_mutex : %d\n", GetLastError());
-            } else {
-                printf("[DEBUG] Mutex clients_mutex libéré pour la libération du client #%d.\n", client_conn->client_id);
-            }
-
-
-            free(client_conn);
-            closesocket(comm_fd);
-            printf("[DEBEUG] client #%d déconnecté.\n", client_conn->client_id);
             continue; // Continue à accepter d'autres connexions
         }
     }
@@ -728,4 +648,50 @@ int count_connected_clients(ServerState *state, ClientData *clients[], int max_c
 
     printf("[DEBUG] Nombre de clients connectés : %d\n", count);
     return count;
+}
+
+
+
+// Fonction pour libérer les ressources d'un client
+int release_client_resources(ServerState *state, ClientData *client_conn) {
+    if (state == NULL || client_conn == NULL) {
+        printf("[ERREUR] Paramètres invalides pour release_client_resources.\n");
+        return -1; // Échec
+    }
+
+    printf("[DEBUG] Libération des ressources pour le client #%d.\n", client_conn->client_id);
+
+    // Fermer le socket du client
+    closesocket(client_conn->socket);
+    printf("[DEBUG] Socket fermé pour le client #%d.\n", client_conn->client_id);
+
+    // Acquérir le mutex pour modifier le tableau des clients
+    DWORD wait_result = WaitForSingleObject(state->clients_mutex, INFINITE);
+    if (wait_result != WAIT_OBJECT_0) {
+        printf("[ERREUR] Échec de WaitForSingleObject pour clients_mutex : %d\n", GetLastError());
+        return -1; // Échec
+    }
+    printf("[DEBUG] Mutex clients_mutex acquis pour la suppression du client #%d.\n", client_conn->client_id);
+
+    // Supprimer le client du tableau
+    if (state->clients[client_conn->client_id] != NULL) {
+        state->clients[client_conn->client_id] = NULL;
+        printf("[DEBUG] Client #%d retiré du tableau des clients.\n", client_conn->client_id);
+    } else {
+        printf("[DEBUG] Le client #%d a déjà été supprimé du tableau.\n", client_conn->client_id);
+    }
+
+    // Libérer le mutex
+    if (!ReleaseMutex(state->clients_mutex)) {
+        printf("[ERREUR] Échec de ReleaseMutex pour clients_mutex : %d\n", GetLastError());
+        return -1; // Échec
+    } else {
+        printf("[DEBUG] Mutex clients_mutex libéré après la suppression du client #%d.\n", client_conn->client_id);
+    }
+
+    // Libérer la mémoire allouée pour le client
+    free(client_conn);
+    printf("[DEBUG] Mémoire libérée pour le client #%d.\n", client_conn->client_id);
+
+    return 0; // Succès
 }
